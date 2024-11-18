@@ -123,8 +123,9 @@ function _per-directory-history-addhistory() {
          [[ -o inc_append_history ]] || \
          [[ -o inc_append_history_time ]]; then
           fc -AI $HISTFILE
-          fc -AI $_per_directory_history_directory
       fi
+
+      # "fc -p" in zshaddhistory hook would write history instantly
       fc -p $_per_directory_history_directory
   fi
 }
@@ -139,6 +140,15 @@ function _per-directory-history-precmd() {
     else
       _per-directory-history-set-directory-history
       _per_directory_history_is_global=false
+    fi
+  else
+    if [[ -o share_history ]]; then
+      # import commands saved in history by other sessions
+      if [[ $_per_directory_history_is_global == false ]]; then
+        fc -RI "$_per_directory_history_directory"
+      else
+        fc -RI $HISTFILE
+      fi
     fi
   fi
 }
